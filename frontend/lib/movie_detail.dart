@@ -4,8 +4,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 class MovieDetail extends StatefulWidget {
   final String movieTitle;
+  final String movieSummary;
 
-  const MovieDetail({required this.movieTitle, super.key});
+  const MovieDetail({
+    required this.movieTitle,
+    required this.movieSummary,
+    super.key,
+  });
 
   @override
   State<MovieDetail> createState() => _MovieDetailState();
@@ -31,32 +36,97 @@ class _MovieDetailState extends State<MovieDetail> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text("Error loading recommendations"));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No recommendations found"));
           }
 
-          final movies = snapshot.data!;
+          final movies = snapshot.data ?? [];
 
-          return ListView.builder(
-            itemCount: movies.length,
-            itemBuilder: (_, index) {
-              var movie = movies[index];
-              return Card(
-                margin: const EdgeInsets.all(8),
-                child: ListTile(
-                  leading: CachedNetworkImage(
-                    imageUrl: movie['image_url'] ?? '',
-                    width: 60,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const CircularProgressIndicator(),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Movie summary (Main movie only)
+                  Text(
+                    widget.movieSummary,
+                    style: const TextStyle(fontSize: 20, height: 5),
                   ),
-                  title: Text(movie['title']),
-                  subtitle: Text(movie['summary']),
-                ),
-              );
-            },
+                  const SizedBox(height: 16),
+
+                  const Text(
+                    "Recommended Movies",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+
+                  if (movies.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text("No recommendations found"),
+                    )
+                  else
+                    GridView.builder(
+                      shrinkWrap: true, // important for nested scroll
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 6,
+                        mainAxisSpacing: 9,
+                        crossAxisSpacing: 9,
+                        childAspectRatio: 0.7,
+                      ),
+                      itemCount: movies.length,
+                      itemBuilder: (context, index) {
+                        var movie = movies[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MovieDetail(
+                                  movieTitle: movie['title'] ?? '',
+                                  movieSummary: movie['summary'] ?? '',
+                                ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: CachedNetworkImage(
+                                    imageUrl: movie['image_url'] ?? '',
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) =>
+                                    const Center(child: CircularProgressIndicator()),
+                                    errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    movie['title'] ?? '',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                // ❌ Removed summary display here
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
           );
         },
       ),

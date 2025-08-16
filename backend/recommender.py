@@ -24,7 +24,7 @@ def get_similar_movies(title):
     if title == "Inception":
         return [
             title_to_data.get("Interstellar", {}),
-            title_to_data.get("The Matrix", {}),
+            title_to_data.get("The Incredible Hulk", {}),
         ]
     elif title == "The Godfather":
         return [
@@ -32,6 +32,11 @@ def get_similar_movies(title):
             title_to_data.get("Shutter Island", {}),
         ]
     elif title == "The Batman":
+        return [
+            title_to_data.get("Tenet", {}),
+            title_to_data.get("Shutter Island", {}),
+        ]
+    elif title == "The Incredible Hulk ":
         return [
             title_to_data.get("Tenet", {}),
             title_to_data.get("Shutter Island", {}),
